@@ -1,0 +1,9 @@
+numpy
+pandas
+librosa
+matplotlib
+seaborn
+scikit-learn
+tensorflow
+sounddevice
+streamlit
