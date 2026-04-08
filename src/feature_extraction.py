@@ -3,7 +3,12 @@ import numpy as np
 import os
 
 def extract_features(file_path):
-    audio, sr = librosa.load(file_path, duration=3, offset=0.5)
+    audio, sr = librosa.load(file_path)
+    
+    # 🔹 Force volume scale to exactly 1.0 peak globally
+    audio = librosa.util.normalize(audio)
+    # Trim silence
+    audio, _ = librosa.effects.trim(audio, top_db=20)
 
     mfcc = np.mean(librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=40).T, axis=0)
     chroma = np.mean(librosa.feature.chroma_stft(y=audio, sr=sr).T, axis=0)

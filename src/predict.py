@@ -1,25 +1,34 @@
 import numpy as np
 import librosa
-from tensorflow.keras.models import load_model
 import os
 import tempfile
+import pickle
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-model_path = os.path.join(BASE_DIR, "..", "models", "best_model.h5")
+model_path = os.path.join(BASE_DIR, "..", "models", "rf_model.pkl")
 label_path = os.path.join(BASE_DIR, "..", "models", "labels.npy")
 
-model = load_model(model_path)
 labels = np.load(label_path)
 
+with open(model_path, "rb") as f:
+    model = pickle.load(f)
 
 def extract_features(file_path):
-    audio, sample_rate = librosa.load(file_path, duration=3, offset=0.5)
+    audio, sample_rate = librosa.load(file_path)
+    
+    # 🔹 Force live Streamlit volume scale to exactly 1.0 peak
+    audio = librosa.util.normalize(audio)
+    # Trim background silence
+    audio, _ = librosa.effects.trim(audio, top_db=20)
+    
     mfcc = np.mean(
         librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40).T,
         axis=0
     )
-    return mfcc
+    chroma = np.mean(librosa.feature.chroma_stft(y=audio, sr=sample_rate).T, axis=0)
+    mel = np.mean(librosa.feature.melspectrogram(y=audio, sr=sample_rate).T, axis=0)
+    return np.hstack([mfcc, chroma, mel])
 
 
 def predict(file):
@@ -34,10 +43,10 @@ def predict(file):
             file_path = file
 
         features = extract_features(file_path)
-        features = np.expand_dims(features, axis=0)
-
-        prediction = model.predict(features)
-        predicted_label = labels[np.argmax(prediction)]
+        
+        # Scikit-Learn RandomForest mapping logic
+        prediction = model.predict([features])
+        predicted_label = labels[prediction[0]]
 
         return predicted_label
 
