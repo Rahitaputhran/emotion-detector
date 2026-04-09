@@ -11,8 +11,6 @@ data/features/
 
 # Machine Learning Outputs
 models/*.h5
-models/*.pkl
-models/*.npy
 
 # Python Caches
 __pycache__/
