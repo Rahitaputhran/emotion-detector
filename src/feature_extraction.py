@@ -9,6 +9,8 @@ def extract_features(file_path):
     audio = librosa.util.normalize(audio)
     # Trim silence
     audio, _ = librosa.effects.trim(audio, top_db=20)
+    # 🔹 Aggressive Pre-Emphasis filter to crush low-frequency web-microphone static and hum
+    audio = librosa.effects.preemphasis(audio)
 
     mfcc = np.mean(librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=40).T, axis=0)
     chroma = np.mean(librosa.feature.chroma_stft(y=audio, sr=sr).T, axis=0)

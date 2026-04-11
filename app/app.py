@@ -4,19 +4,33 @@ from src.predict import predict
 st.title("Emotion Recognition")
 
 # 🎤 Allow users to bypass aggressive Browser Microphone Compression logic
-option = st.radio("Choose Audio Input Method:", ("Record Live Voice", "Upload Uncompressed File"))
+option = st.radio("Choose Audio Input Method:", ("Record Live Voice", "Upload Multiple Audio Files"))
 
-audio_file = None
+audio_files = []
 if option == "Record Live Voice":
-    audio_file = st.audio_input("Record your voice")
+    recorded = st.audio_input("Record your voice")
+    if recorded is not None:
+        audio_files = [recorded]
 else:
-    audio_file = st.file_uploader("Upload a raw .wav audio file", type=["wav", "ogg", "mp3"])
+    # 🔹 Set accept_multiple_files=True to gracefully handle batch inputs without crashing 
+    uploaded = st.file_uploader("Upload raw .wav audio files", type=["wav", "ogg", "mp3"], accept_multiple_files=True)
+    if uploaded:
+        audio_files = uploaded
 
 # 🎯 Predict emotion
-if audio_file is not None:
-    # Playback the audio inside UI
-    st.audio(audio_file)
+if audio_files:
+    # Playback the audio inside UI sequentially
+    for file in audio_files:
+        if len(audio_files) > 1:
+            st.write(f"**{file.name}**")
+        st.audio(file)
     
-    if st.button("Predict Emotion"):
-        emotion = predict(audio_file)
-        st.write(f"### Emotion Detected: {emotion.upper()}")
+    if st.button("Predict Emotion" + ("s" if len(audio_files) > 1 else "")):
+        emotions = []
+        # Batch process behind the scenes sequentially so memory doesn't explode
+        for file in audio_files:
+            emotion = predict(file)
+            emotions.append(emotion.upper())
+            
+        # Compile final comma separated output string identically to teacher's requirements
+        st.write(f"### Emotion{'s' if len(audio_files) > 1 else ''} Detected: {', '.join(emotions)}")
