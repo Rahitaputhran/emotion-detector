@@ -24,22 +24,37 @@ with open(scaler_path, "rb") as f:
     scaler = pickle.load(f)
 
 def extract_features(file_path):
-    audio, sample_rate = librosa.load(file_path)
+    audio, sample_rate = librosa.load(file_path, sr=22050)
     
     # 🔹 Force live Streamlit volume scale to exactly 1.0 peak
     audio = librosa.util.normalize(audio)
-    # Trim background silence
-    audio, _ = librosa.effects.trim(audio, top_db=20)
-    # 🔹 Aggressive Pre-Emphasis filter to crush low-frequency web-microphone static and hum
-    audio = librosa.effects.preemphasis(audio)
     
-    mfcc = np.mean(
-        librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40).T,
-        axis=0
-    )
+    # Simple stable trim
+    audio, _ = librosa.effects.trim(audio, top_db=30)
+    
+    # 1. Pitch tracking (Fundamental Frequency)
+    pitches, magnitudes = librosa.core.piptrack(y=audio, sr=sample_rate)
+    pitch_vals = []
+    for t in range(pitches.shape[1]):
+        index = magnitudes[:, t].argmax()
+        pitch = pitches[index, t]
+        if pitch > 0:
+            pitch_vals.append(pitch)
+    pitch_mean = np.mean(pitch_vals) if len(pitch_vals) > 0 else 0
+    
+    # 2. MFCCs dropping MFCC0 (which tracks absolute volume / recording level!)
+    mfcc = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)[1:] 
+    mfcc_mean = np.mean(mfcc.T, axis=0)
+    
+    # 3. ZCR and RMS (Zero crossing rate tracks friction/anger, RMS tracks energy)
+    zcr = np.mean(librosa.feature.zero_crossing_rate(audio).T, axis=0)
+    rms = np.mean(librosa.feature.rms(y=audio).T, axis=0)
+    
+    # 4. Chroma and Mel
     chroma = np.mean(librosa.feature.chroma_stft(y=audio, sr=sample_rate).T, axis=0)
     mel = np.mean(librosa.feature.melspectrogram(y=audio, sr=sample_rate).T, axis=0)
-    return np.hstack([mfcc, chroma, mel])
+    
+    return np.hstack([[pitch_mean], mfcc_mean, zcr, rms, chroma, mel])
 
 
 def predict(file):
