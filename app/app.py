@@ -3,19 +3,11 @@ from src.predict import predict
 
 st.title("Emotion Recognition")
 
-# 🎤 Allow users to bypass aggressive Browser Microphone Compression logic
-option = st.radio("Choose Audio Input Method:", ("Record Live Voice", "Upload Multiple Audio Files"))
-
 audio_files = []
-if option == "Record Live Voice":
-    recorded = st.audio_input("Record your voice")
-    if recorded is not None:
-        audio_files = [recorded]
-else:
-    # 🔹 Set accept_multiple_files=True to gracefully handle batch inputs without crashing 
-    uploaded = st.file_uploader("Upload raw .wav audio files", type=["wav", "ogg", "mp3"], accept_multiple_files=True)
-    if uploaded:
-        audio_files = uploaded
+# 🔹 Set accept_multiple_files=True to gracefully handle batch inputs without crashing 
+uploaded = st.file_uploader("Upload raw .wav audio files", type=["wav", "ogg", "mp3"], accept_multiple_files=True)
+if uploaded:
+    audio_files = uploaded
 
 # 🎯 Predict emotion
 if audio_files:
