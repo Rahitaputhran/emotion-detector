@@ -19,3 +19,8 @@ __pycache__/
 # Local Configs
 .vscode/
 .idea/
+
+# Scratch & Temporary
+scratch/
+data/tmp_tess/
+
