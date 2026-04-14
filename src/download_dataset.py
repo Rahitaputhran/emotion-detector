@@ -15,7 +15,11 @@ emotions_map = {
     "angry": "angry",
     "happy": "happy", 
     "neutral": "neutral",
-    "sad": "sad"
+    "sad": "sad",
+    "fear": "fear",
+    "disgust": "disgust",
+    "calm": "calm",
+    "surprise": "surprise"
 }
 
 # Create directories
@@ -67,7 +71,11 @@ try:
         "angry": [400, 500, 600],      # Higher frequencies for angry
         "happy": [300, 400, 500],      # Mid frequencies for happy
         "neutral": [200, 250, 300],    # Lower frequencies for neutral
-        "sad": [150, 200, 250]         # Even lower for sad
+        "sad": [150, 200, 250],        # Even lower for sad
+        "fear": [450, 550, 650],       # Shaky high frequencies
+        "disgust": [250, 350, 450],    # Low and harsh
+        "calm": [180, 220, 280],       # Very low and smooth
+        "surprise": [350, 500, 600]    # Sharp jumps
     }
     
     for emotion, freqs in emotion_freqs.items():

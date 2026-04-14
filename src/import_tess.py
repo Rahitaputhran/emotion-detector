@@ -14,7 +14,11 @@ EMOTION_MAP = {
     "angry": "angry",
     "happy": "happy",
     "sad": "sad",
-    "neutral": "neutral"
+    "neutral": "neutral",
+    "fear": "fear",
+    "disgust": "disgust",
+    "ps": "surprise",
+    "surprised": "surprise"
 }
 
 def import_tess():
